@@ -1,23 +1,24 @@
-"""
-# 05 - Complete Medallion Architecture
-
-## Overview
-Build a production-ready Bronze → Silver → Gold pipeline.
-See how automatic dependency inference and incremental processing work together.
-
-## Architecture
-
-Bronze (Raw)           Silver (Clean)         Gold (Business)
-━━━━━━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━━━━━
-raw_customers      →   clean_customers    →   customer_360
-raw_orders         →   clean_orders       →   daily_revenue
-raw_products       →   clean_products     →   product_performance
-                       enriched_sales     →   sales_dashboard
-
-## Author  
-Ahmed Mahmoud - DataMindAI
-"""
-
+# Databricks notebook source
+# COMMAND ----------
+# MAGIC %md
+# MAGIC # 05 - Complete Medallion Architecture
+# MAGIC
+# MAGIC ## Overview
+# MAGIC Build a production-ready Bronze → Silver → Gold pipeline.
+# MAGIC See how automatic dependency inference and incremental processing work together.
+# MAGIC
+# MAGIC ## Architecture
+# MAGIC
+# MAGIC Bronze (Raw)           Silver (Clean)         Gold (Business)
+# MAGIC ━━━━━━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━━━━━
+# MAGIC raw_customers      →   clean_customers    →   customer_360
+# MAGIC raw_orders         →   clean_orders       →   daily_revenue
+# MAGIC raw_products       →   clean_products     →   product_performance
+# MAGIC                        enriched_sales     →   sales_dashboard
+# MAGIC
+# MAGIC ## Author  
+# MAGIC Ahmed Mahmoud - DataMindAI
+# COMMAND ----------
 from pyspark import pipelines as dp
 from pyspark.sql.functions import *
 
@@ -125,26 +126,25 @@ def gold_product_performance():
             sum("total_amount").alias("revenue"),
             count("order_id").alias("order_count")
         )
-
-"""
-## How the DAG Works
-
-The engine automatically infers:
-
-bronze_customers ──┐
-                   ├──> silver_customers ──┐
-bronze_orders ─────┤                       ├──> silver_orders_enriched ──┬──> gold_customer_360
-                   ├──> silver_orders ─────┘                             │
-bronze_products ───┴──> silver_products ───────────────────────────────┼──> gold_daily_revenue
-                                                                         └──> gold_product_performance
-
-Dependencies are determined by reading spark.read.table() references!
-
-## Key Benefits
-
-1. No manual DAG definition
-2. Automatic incremental processing
-3. Only recompute when upstream changes
-4. Full lineage through Unity Catalog
-5. Optimized resource allocation
-"""
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## How the DAG Works
+# MAGIC
+# MAGIC The engine automatically infers:
+# MAGIC
+# MAGIC bronze_customers ──┐
+# MAGIC                    ├──> silver_customers ──┐
+# MAGIC bronze_orders ─────┤                       ├──> silver_orders_enriched ──┬──> gold_customer_360
+# MAGIC                    ├──> silver_orders ─────┘                             │
+# MAGIC bronze_products ───┴──> silver_products ───────────────────────────────┼──> gold_daily_revenue
+# MAGIC                                                                          └──> gold_product_performance
+# MAGIC
+# MAGIC Dependencies are determined by reading spark.read.table() references!
+# MAGIC
+# MAGIC ## Key Benefits
+# MAGIC
+# MAGIC 1. No manual DAG definition
+# MAGIC 2. Automatic incremental processing
+# MAGIC 3. Only recompute when upstream changes
+# MAGIC 4. Full lineage through Unity Catalog
+# MAGIC 5. Optimized resource allocation

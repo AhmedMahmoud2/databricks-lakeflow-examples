@@ -1,22 +1,23 @@
-"""
-# 08 - Production Best Practices
-
-## Overview
-Production-ready patterns for enterprise Lakeflow deployments.
-Learn from real-world experience to build robust, maintainable pipelines.
-
-## Topics
-- File organization
-- Performance optimization
-- Error handling
-- Monitoring and alerting
-- CI/CD integration
-- Cost optimization
-
-## Author
-Ahmed Mahmoud - DataMindAI
-"""
-
+# Databricks notebook source
+# COMMAND ----------
+# MAGIC %md
+# MAGIC # 08 - Production Best Practices
+# MAGIC
+# MAGIC ## Overview
+# MAGIC Production-ready patterns for enterprise Lakeflow deployments.
+# MAGIC Learn from real-world experience to build robust, maintainable pipelines.
+# MAGIC
+# MAGIC ## Topics
+# MAGIC - File organization
+# MAGIC - Performance optimization
+# MAGIC - Error handling
+# MAGIC - Monitoring and alerting
+# MAGIC - CI/CD integration
+# MAGIC - Cost optimization
+# MAGIC
+# MAGIC ## Author
+# MAGIC Ahmed Mahmoud - DataMindAI
+# COMMAND ----------
 from pyspark import pipelines as dp
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
@@ -24,48 +25,46 @@ from pyspark.sql.types import *
 # ==============================================================================
 # BEST PRACTICE 1: Modular File Organization
 # ==============================================================================
-
-"""
-## Recommended Project Structure
-
-```
-/pipelines/
-  ├── config/
-  │   ├── schemas.py          # Schema definitions
-  │   └── settings.py         # Pipeline configurations
-  ├── ingestion/
-  │   ├── bronze_customers.py
-  │   ├── bronze_orders.py
-  │   └── bronze_products.py
-  ├── transformation/
-  │   ├── silver_customers.py
-  │   ├── silver_orders.py
-  │   └── enrichment.py
-  ├── aggregation/
-  │   ├── gold_metrics.py
-  │   └── gold_reporting.py
-  ├── quality/
-  │   └── validation_rules.py
-  └── main.py                 # Entry point
-```
-
-Benefits:
-- Clear separation of concerns
-- Easy to test individual modules
-- Team members can work in parallel
-- Reusable components
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Recommended Project Structure
+# MAGIC
+# MAGIC ```
+# MAGIC /pipelines/
+# MAGIC   ├── config/
+# MAGIC   │   ├── schemas.py          # Schema definitions
+# MAGIC   │   └── settings.py         # Pipeline configurations
+# MAGIC   ├── ingestion/
+# MAGIC   │   ├── bronze_customers.py
+# MAGIC   │   ├── bronze_orders.py
+# MAGIC   │   └── bronze_products.py
+# MAGIC   ├── transformation/
+# MAGIC   │   ├── silver_customers.py
+# MAGIC   │   ├── silver_orders.py
+# MAGIC   │   └── enrichment.py
+# MAGIC   ├── aggregation/
+# MAGIC   │   ├── gold_metrics.py
+# MAGIC   │   └── gold_reporting.py
+# MAGIC   ├── quality/
+# MAGIC   │   └── validation_rules.py
+# MAGIC   └── main.py                 # Entry point
+# MAGIC ```
+# MAGIC
+# MAGIC Benefits:
+# MAGIC - Clear separation of concerns
+# MAGIC - Easy to test individual modules
+# MAGIC - Team members can work in parallel
+# MAGIC - Reusable components
+# COMMAND ----------
 # ==============================================================================
 # BEST PRACTICE 2: Explicit Schema Definitions
 # ==============================================================================
-
-"""
-## Define Schemas Once, Reuse Everywhere
-
-schemas.py:
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Define Schemas Once, Reuse Everywhere
+# MAGIC
+# MAGIC schemas.py:
+# COMMAND ----------
 # Customer schema
 CUSTOMER_SCHEMA = StructType([
     StructField("customer_id", StringType(), False),
@@ -81,11 +80,10 @@ ORDER_SCHEMA = StructType([
     StructField("amount", DoubleType(), True),
     StructField("order_date", DateType(), True)
 ])
-
-"""
-Use in pipelines:
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC Use in pipelines:
+# COMMAND ----------
 @dp.table(comment="Customers with explicit schema")
 def bronze_customers_typed():
     return spark.readStream \
@@ -97,13 +95,12 @@ def bronze_customers_typed():
 # ==============================================================================
 # BEST PRACTICE 3: Configuration Management
 # ==============================================================================
-
-"""
-## Externalize Configuration
-
-settings.py:
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Externalize Configuration
+# MAGIC
+# MAGIC settings.py:
+# COMMAND ----------
 class PipelineConfig:
     # Source paths
     RAW_DATA_PATH = "/mnt/raw"
@@ -120,11 +117,10 @@ class PipelineConfig:
     # Feature flags
     ENABLE_STRICT_VALIDATION = True
     ENABLE_AUTO_OPTIMIZE = True
-
-"""
-Use in pipelines:
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC Use in pipelines:
+# COMMAND ----------
 @dp.table(
     comment="Configurable ingestion",
     table_properties={
@@ -140,13 +136,12 @@ def bronze_configurable():
 # ==============================================================================
 # BEST PRACTICE 4: Reusable Quality Functions
 # ==============================================================================
-
-"""
-## Create Quality Rule Library
-
-validation_rules.py:
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Create Quality Rule Library
+# MAGIC
+# MAGIC validation_rules.py:
+# COMMAND ----------
 def email_validation_rule():
     return "email RLIKE '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'"
 
@@ -155,11 +150,10 @@ def positive_amount_rule():
 
 def future_date_check():
     return "date_field <= CURRENT_DATE()"
-
-"""
-Apply in pipelines:
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC Apply in pipelines:
+# COMMAND ----------
 @dp.materialized_view(comment="Validated with reusable rules")
 @dp.expect("valid_email", email_validation_rule())
 @dp.expect("valid_amount", positive_amount_rule())
@@ -169,11 +163,10 @@ def silver_validated():
 # ==============================================================================
 # BEST PRACTICE 5: Error Handling Patterns
 # ==============================================================================
-
-"""
-## Robust Error Handling
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Robust Error Handling
+# COMMAND ----------
 @dp.table(comment="Ingestion with comprehensive error handling")
 def bronze_robust():
     """
@@ -218,11 +211,10 @@ def gold_error_monitoring():
 # ==============================================================================
 # BEST PRACTICE 6: Performance Optimization
 # ==============================================================================
-
-"""
-## Optimizing for Performance
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Optimizing for Performance
+# COMMAND ----------
 @dp.table(
     comment="High-performance streaming table",
     table_properties={
@@ -254,62 +246,60 @@ def bronze_optimized():
 # ==============================================================================
 # BEST PRACTICE 7: Testing Strategy
 # ==============================================================================
-
-"""
-## Unit Testing Lakeflow Pipelines
-
-test_pipeline.py:
-```python
-import pytest
-from pyspark.sql import SparkSession
-
-@pytest.fixture
-def spark():
-    return SparkSession.builder.master("local[*]").getOrCreate()
-
-def test_customer_validation(spark):
-    # Create test data
-    test_data = [
-        ("1", "valid@email.com", "US"),
-        ("2", "invalid-email", "UK"),
-        ("3", None, "CA")
-    ]
-    
-    df = spark.createDataFrame(test_data, ["id", "email", "country"])
-    
-    # Apply validation logic
-    validated = df.filter(col("email").rlike(".+@.+\\..+"))
-    
-    # Assert expectations
-    assert validated.count() == 1
-    assert validated.first()["id"] == "1"
-```
-
-Integration testing:
-```bash
-# Run pipeline in dev mode with test data
-databricks pipelines create \\
-    --settings test_settings.json \\
-    --development true
-
-databricks pipelines start --pipeline-id <id>
-
-# Validate outputs
-databricks sql execute \\
-    "SELECT COUNT(*) FROM test_schema.bronze_customers"
-```
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Unit Testing Lakeflow Pipelines
+# MAGIC
+# MAGIC test_pipeline.py:
+# MAGIC ```python
+# MAGIC import pytest
+# MAGIC from pyspark.sql import SparkSession
+# MAGIC
+# MAGIC @pytest.fixture
+# MAGIC def spark():
+# MAGIC     return SparkSession.builder.master("local[*]").getOrCreate()
+# MAGIC
+# MAGIC def test_customer_validation(spark):
+# MAGIC     # Create test data
+# MAGIC     test_data = [
+# MAGIC         ("1", "valid@email.com", "US"),
+# MAGIC         ("2", "invalid-email", "UK"),
+# MAGIC         ("3", None, "CA")
+# MAGIC     ]
+# MAGIC
+# MAGIC     df = spark.createDataFrame(test_data, ["id", "email", "country"])
+# MAGIC
+# MAGIC     # Apply validation logic
+# MAGIC     validated = df.filter(col("email").rlike(".+@.+\\..+"))
+# MAGIC
+# MAGIC     # Assert expectations
+# MAGIC     assert validated.count() == 1
+# MAGIC     assert validated.first()["id"] == "1"
+# MAGIC ```
+# MAGIC
+# MAGIC Integration testing:
+# MAGIC ```bash
+# MAGIC # Run pipeline in dev mode with test data
+# MAGIC databricks pipelines create \\
+# MAGIC     --settings test_settings.json \\
+# MAGIC     --development true
+# MAGIC
+# MAGIC databricks pipelines start --pipeline-id <id>
+# MAGIC
+# MAGIC # Validate outputs
+# MAGIC databricks sql execute \\
+# MAGIC     "SELECT COUNT(*) FROM test_schema.bronze_customers"
+# MAGIC ```
+# COMMAND ----------
 # ==============================================================================
 # BEST PRACTICE 8: Monitoring and Observability
 # ==============================================================================
-
-"""
-## Production Monitoring
-
-Create observability tables:
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Production Monitoring
+# MAGIC
+# MAGIC Create observability tables:
+# COMMAND ----------
 @dp.materialized_view(comment="Pipeline health metrics")
 def monitoring_pipeline_health():
     """
@@ -328,110 +318,109 @@ def monitoring_pipeline_health():
 # ==============================================================================
 # KEY TAKEAWAYS
 # ==============================================================================
-
-"""
-## Production Checklist
-
-### Architecture
-- [ ] Modular file organization
-- [ ] Separate config from code
-- [ ] Reusable schemas and functions
-- [ ] Clear layer separation (Bronze/Silver/Gold)
-
-### Performance
-- [ ] Explicit schemas everywhere
-- [ ] Controlled batch sizes (maxFilesPerTrigger)
-- [ ] Auto-optimize enabled
-- [ ] Liquid clustering configured
-- [ ] Query optimization with Z-ORDER
-
-### Quality
-- [ ] Comprehensive expectations
-- [ ] Error handling with rescue columns
-- [ ] Monitoring dashboard for issues
-- [ ] Alerting on quality violations
-
-### Operations
-- [ ] CI/CD pipeline configured
-- [ ] Unit and integration tests
-- [ ] Monitoring and alerting
-- [ ] Documentation and runbooks
-- [ ] Backup and recovery procedures
-
-### Cost Optimization
-- [ ] Serverless compute enabled
-- [ ] Appropriate cluster sizing
-- [ ] VACUUM old data regularly
-- [ ] Monitor compute usage
-- [ ] Review storage costs
-
-## Serverless Best Practice
-
-```python
-# Pipeline configuration for serverless
-{
-  "name": "production_pipeline",
-  "channel": "PREVIEW",  # Enable serverless
-  "serverless": true,
-  "clusters": [],  # No cluster config needed
-  "libraries": [{"file": {"path": "/path/to/pipeline.py"}}],
-  "target": "main.production",
-  "storage": "/mnt/pipelines/production"
-}
-```
-
-## CI/CD Integration
-
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy Pipeline
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      
-      - name: Deploy to Databricks
-        run: |
-          databricks pipelines update \\
-            --pipeline-id $PIPELINE_ID \\
-            --settings pipeline_settings.json
-          
-          databricks pipelines start \\
-            --pipeline-id $PIPELINE_ID
-```
-
-## Congratulations!
-
-You've completed the Mastering Databricks Lakeflow course!
-
-You now know:
-✓ Declarative pipeline patterns
-✓ Streaming and batch processing
-✓ Data quality enforcement
-✓ Medallion architecture
-✓ CDC and SCD Type 2
-✓ Migration strategies
-✓ Production best practices
-
-## Resources
-
-- DataMindAI Blog: https://datamindaiwithhmed.com
-- Databricks Documentation: https://docs.databricks.com
-- GitHub Repo: https://github.com/yourusername/databricks-lakeflow-examples
-
-## Next Steps
-
-1. Build your first production pipeline
-2. Join the DataMindAI community
-3. Share your learnings
-4. Contribute to this repo!
-
----
-© 2026 DataMindAI | Turn Your Data Into Decision-Ready Intelligence
-"""
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Production Checklist
+# MAGIC
+# MAGIC ### Architecture
+# MAGIC - [ ] Modular file organization
+# MAGIC - [ ] Separate config from code
+# MAGIC - [ ] Reusable schemas and functions
+# MAGIC - [ ] Clear layer separation (Bronze/Silver/Gold)
+# MAGIC
+# MAGIC ### Performance
+# MAGIC - [ ] Explicit schemas everywhere
+# MAGIC - [ ] Controlled batch sizes (maxFilesPerTrigger)
+# MAGIC - [ ] Auto-optimize enabled
+# MAGIC - [ ] Liquid clustering configured
+# MAGIC - [ ] Query optimization with Z-ORDER
+# MAGIC
+# MAGIC ### Quality
+# MAGIC - [ ] Comprehensive expectations
+# MAGIC - [ ] Error handling with rescue columns
+# MAGIC - [ ] Monitoring dashboard for issues
+# MAGIC - [ ] Alerting on quality violations
+# MAGIC
+# MAGIC ### Operations
+# MAGIC - [ ] CI/CD pipeline configured
+# MAGIC - [ ] Unit and integration tests
+# MAGIC - [ ] Monitoring and alerting
+# MAGIC - [ ] Documentation and runbooks
+# MAGIC - [ ] Backup and recovery procedures
+# MAGIC
+# MAGIC ### Cost Optimization
+# MAGIC - [ ] Serverless compute enabled
+# MAGIC - [ ] Appropriate cluster sizing
+# MAGIC - [ ] VACUUM old data regularly
+# MAGIC - [ ] Monitor compute usage
+# MAGIC - [ ] Review storage costs
+# MAGIC
+# MAGIC ## Serverless Best Practice
+# MAGIC
+# MAGIC ```python
+# MAGIC # Pipeline configuration for serverless
+# MAGIC {
+# MAGIC   "name": "production_pipeline",
+# MAGIC   "channel": "PREVIEW",  # Enable serverless
+# MAGIC   "serverless": true,
+# MAGIC   "clusters": [],  # No cluster config needed
+# MAGIC   "libraries": [{"file": {"path": "/path/to/pipeline.py"}}],
+# MAGIC   "target": "main.production",
+# MAGIC   "storage": "/mnt/pipelines/production"
+# MAGIC }
+# MAGIC ```
+# MAGIC
+# MAGIC ## CI/CD Integration
+# MAGIC
+# MAGIC ```yaml
+# MAGIC # .github/workflows/deploy.yml
+# MAGIC name: Deploy Pipeline
+# MAGIC
+# MAGIC on:
+# MAGIC   push:
+# MAGIC     branches: [main]
+# MAGIC
+# MAGIC jobs:
+# MAGIC   deploy:
+# MAGIC     runs-on: ubuntu-latest
+# MAGIC     steps:
+# MAGIC       - uses: actions/checkout@v2
+# MAGIC
+# MAGIC       - name: Deploy to Databricks
+# MAGIC         run: |
+# MAGIC           databricks pipelines update \\
+# MAGIC             --pipeline-id $PIPELINE_ID \\
+# MAGIC             --settings pipeline_settings.json
+# MAGIC
+# MAGIC           databricks pipelines start \\
+# MAGIC             --pipeline-id $PIPELINE_ID
+# MAGIC ```
+# MAGIC
+# MAGIC ## Congratulations!
+# MAGIC
+# MAGIC You've completed the Mastering Databricks Lakeflow course!
+# MAGIC
+# MAGIC You now know:
+# MAGIC ✓ Declarative pipeline patterns
+# MAGIC ✓ Streaming and batch processing
+# MAGIC ✓ Data quality enforcement
+# MAGIC ✓ Medallion architecture
+# MAGIC ✓ CDC and SCD Type 2
+# MAGIC ✓ Migration strategies
+# MAGIC ✓ Production best practices
+# MAGIC
+# MAGIC ## Resources
+# MAGIC
+# MAGIC - DataMindAI Blog: https://datamindaiwithhmed.com
+# MAGIC - Databricks Documentation: https://docs.databricks.com
+# MAGIC - GitHub Repo: https://github.com/yourusername/databricks-lakeflow-examples
+# MAGIC
+# MAGIC ## Next Steps
+# MAGIC
+# MAGIC 1. Build your first production pipeline
+# MAGIC 2. Join the DataMindAI community
+# MAGIC 3. Share your learnings
+# MAGIC 4. Contribute to this repo!
+# MAGIC
+# MAGIC ---
+# MAGIC © 2026 DataMindAI | Turn Your Data Into Decision-Ready Intelligence

@@ -1,21 +1,22 @@
-"""
-# 03 - Materialized Views (Silver/Gold Layers)
-
-## Overview
-Learn to create aggregated, business-ready datasets using @dp.materialized_view.
-This is your Silver and Gold layer pattern - cleaned, validated, and business-ready data.
-
-## What You'll Learn
-- When to use materialized views vs streaming tables
-- Engine-managed refresh strategies
-- Complex transformations and aggregations
-- Join patterns and window functions
-- Performance optimization
-
-## Author
-Ahmed Mahmoud - DataMindAI
-"""
-
+# Databricks notebook source
+# COMMAND ----------
+# MAGIC %md
+# MAGIC # 03 - Materialized Views (Silver/Gold Layers)
+# MAGIC
+# MAGIC ## Overview
+# MAGIC Learn to create aggregated, business-ready datasets using @dp.materialized_view.
+# MAGIC This is your Silver and Gold layer pattern - cleaned, validated, and business-ready data.
+# MAGIC
+# MAGIC ## What You'll Learn
+# MAGIC - When to use materialized views vs streaming tables
+# MAGIC - Engine-managed refresh strategies
+# MAGIC - Complex transformations and aggregations
+# MAGIC - Join patterns and window functions
+# MAGIC - Performance optimization
+# MAGIC
+# MAGIC ## Author
+# MAGIC Ahmed Mahmoud - DataMindAI
+# COMMAND ----------
 from pyspark import pipelines as dp
 from pyspark.sql.functions import *
 from pyspark.sql.window import Window
@@ -23,17 +24,16 @@ from pyspark.sql.window import Window
 # ==============================================================================
 # SECTION 1: Basic Materialized View
 # ==============================================================================
-
-"""
-## The @dp.materialized_view Decorator
-
-A materialized view is:
-- For aggregations, joins, and derived logic
-- Engine decides full refresh vs incremental update
-- Standard batch read syntax
-- Ideal for Silver and Gold layers
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## The @dp.materialized_view Decorator
+# MAGIC
+# MAGIC A materialized view is:
+# MAGIC - For aggregations, joins, and derived logic
+# MAGIC - Engine decides full refresh vs incremental update
+# MAGIC - Standard batch read syntax
+# MAGIC - Ideal for Silver and Gold layers
+# COMMAND ----------
 @dp.materialized_view(
     comment="Cleaned customer data (Silver layer)"
 )
@@ -65,13 +65,12 @@ def silver_customers():
 # ==============================================================================
 # SECTION 2: Aggregations and Group By
 # ==============================================================================
-
-"""
-## Aggregating Data for Gold Layer
-
-Create business metrics and KPIs.
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Aggregating Data for Gold Layer
+# MAGIC
+# MAGIC Create business metrics and KPIs.
+# COMMAND ----------
 @dp.materialized_view(
     comment="Daily sales summary (Gold layer)"
 )
@@ -100,13 +99,12 @@ def gold_daily_sales():
 # ==============================================================================
 # SECTION 3: Joins Across Tables
 # ==============================================================================
-
-"""
-## Joining Multiple Tables
-
-Create enriched datasets by combining multiple sources.
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Joining Multiple Tables
+# MAGIC
+# MAGIC Create enriched datasets by combining multiple sources.
+# COMMAND ----------
 @dp.materialized_view(
     comment="Enriched sales with customer and product details"
 )
@@ -141,13 +139,12 @@ def silver_sales_enriched():
 # ==============================================================================
 # SECTION 4: Window Functions
 # ==============================================================================
-
-"""
-## Advanced Analytics with Window Functions
-
-Calculate running totals, rankings, and time-series analytics.
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Advanced Analytics with Window Functions
+# MAGIC
+# MAGIC Calculate running totals, rankings, and time-series analytics.
+# COMMAND ----------
 @dp.materialized_view(
     comment="Customer purchase history with metrics"
 )
@@ -191,13 +188,12 @@ def gold_customer_analytics():
 # ==============================================================================
 # SECTION 5: Complex Business Logic
 # ==============================================================================
-
-"""
-## Implementing Business Rules
-
-Apply complex business logic and calculations.
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Implementing Business Rules
+# MAGIC
+# MAGIC Apply complex business logic and calculations.
+# COMMAND ----------
 @dp.materialized_view(
     comment="Customer segmentation based on RFM analysis"
 )
@@ -251,13 +247,12 @@ def gold_customer_segments():
 # ==============================================================================
 # SECTION 6: Time-Based Aggregations
 # ==============================================================================
-
-"""
-## Rolling Windows and Time Series
-
-Calculate moving averages and trends.
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Rolling Windows and Time Series
+# MAGIC
+# MAGIC Calculate moving averages and trends.
+# COMMAND ----------
 @dp.materialized_view(
     comment="7-day rolling average sales"
 )
@@ -298,48 +293,47 @@ def gold_sales_trends():
 # ==============================================================================
 # KEY CONCEPTS SUMMARY
 # ==============================================================================
-
-"""
-## Materialized View Best Practices
-
-### ✅ DO:
-1. Use standard spark.read.table() for batch processing
-2. Leverage engine's smart refresh decisions
-3. Use explicit column selection (avoid SELECT *)
-4. Cache intermediate results for complex logic
-5. Apply filters early in transformation chain
-6. Use broadcast joins for small dimension tables
-
-### ❌ DON'T:
-1. Use streaming reads in materialized views
-2. Call .collect(), .count() inside definitions
-3. Mix streaming and batch reads
-4. Create circular dependencies between views
-5. Forget to optimize join order
-
-### 💡 Pro Tips:
-- Engine automatically decides full vs incremental refresh
-- Views update only when upstream data changes
-- Use PARTITION BY in window functions carefully (memory)
-- Consider liquid clustering for large aggregations
-- Monitor query plans with explain()
-
-## Performance Optimization
-
-**For Large Aggregations:**
-- Use broadcast joins for dimension tables
-- Partition data appropriately
-- Enable adaptive query execution (AQE)
-- Use Z-ORDER clustering on common filters
-
-**For Complex Joins:**
-- Filter before joining
-- Join on indexed columns when possible
-- Broadcast small tables (<10GB)
-- Consider bucketing for repeated joins
-
-## Next Steps
-
-Proceed to `04_data_quality_expectations.py` to learn about
-enforcing data quality rules with @dp.expect decorators.
-"""
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Materialized View Best Practices
+# MAGIC
+# MAGIC ### ✅ DO:
+# MAGIC 1. Use standard spark.read.table() for batch processing
+# MAGIC 2. Leverage engine's smart refresh decisions
+# MAGIC 3. Use explicit column selection (avoid SELECT *)
+# MAGIC 4. Cache intermediate results for complex logic
+# MAGIC 5. Apply filters early in transformation chain
+# MAGIC 6. Use broadcast joins for small dimension tables
+# MAGIC
+# MAGIC ### ❌ DON'T:
+# MAGIC 1. Use streaming reads in materialized views
+# MAGIC 2. Call .collect(), .count() inside definitions
+# MAGIC 3. Mix streaming and batch reads
+# MAGIC 4. Create circular dependencies between views
+# MAGIC 5. Forget to optimize join order
+# MAGIC
+# MAGIC ### 💡 Pro Tips:
+# MAGIC - Engine automatically decides full vs incremental refresh
+# MAGIC - Views update only when upstream data changes
+# MAGIC - Use PARTITION BY in window functions carefully (memory)
+# MAGIC - Consider liquid clustering for large aggregations
+# MAGIC - Monitor query plans with explain()
+# MAGIC
+# MAGIC ## Performance Optimization
+# MAGIC
+# MAGIC **For Large Aggregations:**
+# MAGIC - Use broadcast joins for dimension tables
+# MAGIC - Partition data appropriately
+# MAGIC - Enable adaptive query execution (AQE)
+# MAGIC - Use Z-ORDER clustering on common filters
+# MAGIC
+# MAGIC **For Complex Joins:**
+# MAGIC - Filter before joining
+# MAGIC - Join on indexed columns when possible
+# MAGIC - Broadcast small tables (<10GB)
+# MAGIC - Consider bucketing for repeated joins
+# MAGIC
+# MAGIC ## Next Steps
+# MAGIC
+# MAGIC Proceed to `04_data_quality_expectations.py` to learn about
+# MAGIC enforcing data quality rules with @dp.expect decorators.

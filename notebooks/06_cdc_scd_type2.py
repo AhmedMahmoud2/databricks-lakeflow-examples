@@ -1,36 +1,36 @@
-"""
-# 06 - CDC and SCD Type 2
-
-## Overview
-Implement Change Data Capture with Slowly Changing Dimensions Type 2.
-Track complete history of changes with automatic timeline management.
-
-## What You'll Learn
-- Using dp.create_auto_cdc_flow()
-- SCD Type 2 pattern implementation
-- Multiple views from single CDC source
-- History tracking with START_AT and END_AT
-
-## Author
-Ahmed Mahmoud - DataMindAI
-"""
-
+# Databricks notebook source
+# COMMAND ----------
+# MAGIC %md
+# MAGIC # 06 - CDC and SCD Type 2
+# MAGIC
+# MAGIC ## Overview
+# MAGIC Implement Change Data Capture with Slowly Changing Dimensions Type 2.
+# MAGIC Track complete history of changes with automatic timeline management.
+# MAGIC
+# MAGIC ## What You'll Learn
+# MAGIC - Using dp.create_auto_cdc_flow()
+# MAGIC - SCD Type 2 pattern implementation
+# MAGIC - Multiple views from single CDC source
+# MAGIC - History tracking with START_AT and END_AT
+# MAGIC
+# MAGIC ## Author
+# MAGIC Ahmed Mahmoud - DataMindAI
+# COMMAND ----------
 from pyspark import pipelines as dp
 from pyspark.sql.functions import *
 
 # ==============================================================================
 # SECTION 1: Basic CDC Flow
 # ==============================================================================
-
-"""
-## The create_auto_cdc_flow Function
-
-Automatically handles:
-- Inserts: New records
-- Updates: Modified records (with history)
-- Deletes: Soft deletes with end timestamp
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## The create_auto_cdc_flow Function
+# MAGIC
+# MAGIC Automatically handles:
+# MAGIC - Inserts: New records
+# MAGIC - Updates: Modified records (with history)
+# MAGIC - Deletes: Soft deletes with end timestamp
+# COMMAND ----------
 # Source: Raw change data
 @dp.table(comment="CDC source from database")
 def raw_customer_changes():
@@ -46,27 +46,25 @@ dp.create_auto_cdc_flow(
     target="silver_customers_scd2",
     stored_as_scd_type=2
 )
-
-"""
-What this does:
-- customer_id: Primary key for tracking records
-- updated_at: Timestamp to order changes
-- Creates SCD Type 2 with __START_AT and __END_AT columns
-- __END_AT = NULL for current version
-- Previous versions have __END_AT set
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC What this does:
+# MAGIC - customer_id: Primary key for tracking records
+# MAGIC - updated_at: Timestamp to order changes
+# MAGIC - Creates SCD Type 2 with __START_AT and __END_AT columns
+# MAGIC - __END_AT = NULL for current version
+# MAGIC - Previous versions have __END_AT set
+# COMMAND ----------
 # ==============================================================================
 # SECTION 2: Multiple Views from Single CDC
 # ==============================================================================
-
-"""
-## 1-to-Many Pattern
-
-Create multiple regional views from one CDC source.
-This is a 2026 efficiency upgrade!
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## 1-to-Many Pattern
+# MAGIC
+# MAGIC Create multiple regional views from one CDC source.
+# MAGIC This is a 2026 efficiency upgrade!
+# COMMAND ----------
 # Single CDC source
 @dp.table(comment="Global customer changes")
 def cdc_customers_global():
@@ -93,25 +91,23 @@ dp.create_auto_cdc_flow(
     where="region = 'B'",
     stored_as_scd_type=2
 )
-
-"""
-Benefits:
-- Process CDC stream once
-- Fan out to multiple views
-- Each view maintains own history
-- Significant cost savings
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC Benefits:
+# MAGIC - Process CDC stream once
+# MAGIC - Fan out to multiple views
+# MAGIC - Each view maintains own history
+# MAGIC - Significant cost savings
+# COMMAND ----------
 # ==============================================================================
 # SECTION 3: Querying SCD Type 2 Tables
 # ==============================================================================
-
-"""
-## Working with Historical Data
-
-Query patterns for SCD Type 2 tables.
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Working with Historical Data
+# MAGIC
+# MAGIC Query patterns for SCD Type 2 tables.
+# COMMAND ----------
 @dp.materialized_view(comment="Current customer snapshot")
 def customers_current():
     """
@@ -156,13 +152,12 @@ def customers_as_of_date():
 # ==============================================================================
 # SECTION 4: CDC with Complex Keys
 # ==============================================================================
-
-"""
-## Composite Keys and Multiple Sequences
-
-Handle complex CDC scenarios.
-"""
-
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Composite Keys and Multiple Sequences
+# MAGIC
+# MAGIC Handle complex CDC scenarios.
+# COMMAND ----------
 @dp.table(comment="Order line items CDC")
 def raw_order_items_cdc():
     return spark.readStream.format("cloudFiles") \
@@ -177,29 +172,28 @@ dp.create_auto_cdc_flow(
     target="silver_order_items_scd2",
     stored_as_scd_type=2
 )
-
-"""
-## Key Concepts
-
-### Automatic Timeline Management
-- __START_AT: When this version became effective
-- __END_AT: When this version was superseded (NULL = current)
-- __DELETED: Boolean flag for soft deletes
-
-### Change Types Handled
-1. INSERT: New record appears
-2. UPDATE: Existing record modified (closes old, opens new)
-3. DELETE: Record soft-deleted (__DELETED = true, __END_AT set)
-
-### Best Practices
-- Always use timestamp for sequence_by
-- Use composite keys when needed
-- Filter WHERE __END_AT IS NULL for current state
-- Use BETWEEN for point-in-time queries
-- Consider data retention policies for history
-
-## Next Steps
-
-See `07_migration_dlt_to_dp.py` for migrating existing
-Delta Live Tables pipelines to new @dp syntax.
-"""
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## Key Concepts
+# MAGIC
+# MAGIC ### Automatic Timeline Management
+# MAGIC - __START_AT: When this version became effective
+# MAGIC - __END_AT: When this version was superseded (NULL = current)
+# MAGIC - __DELETED: Boolean flag for soft deletes
+# MAGIC
+# MAGIC ### Change Types Handled
+# MAGIC 1. INSERT: New record appears
+# MAGIC 2. UPDATE: Existing record modified (closes old, opens new)
+# MAGIC 3. DELETE: Record soft-deleted (__DELETED = true, __END_AT set)
+# MAGIC
+# MAGIC ### Best Practices
+# MAGIC - Always use timestamp for sequence_by
+# MAGIC - Use composite keys when needed
+# MAGIC - Filter WHERE __END_AT IS NULL for current state
+# MAGIC - Use BETWEEN for point-in-time queries
+# MAGIC - Consider data retention policies for history
+# MAGIC
+# MAGIC ## Next Steps
+# MAGIC
+# MAGIC See `07_migration_dlt_to_dp.py` for migrating existing
+# MAGIC Delta Live Tables pipelines to new @dp syntax.
